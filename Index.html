@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@200;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" type="image/png" href="https://www.weatherwalay.com/_next/static/media/logomark.47a81a00.svg">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="stylefile.css">
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Reset Map Button with Refresh Icon -->
+    <button class="reset-button" onclick="resetMap()" title="Reset Map">
+        <span class="reset-icon glyphicon glyphicon-refresh" aria-hidden="true"></span>
+    </button>
+
+    <div class="header-container light-mode">
+        <center>
+            <p class="metax light-mode">WEATHERWALAY</p>
+            <p style="margin:0;">
+                <marquee bgcolor="#397eff" height="24px" scrollAmount="6" onMouseOver="this.stop()" onMouseOut="this.start()">
+                    <font face="Poppins" size="2.8">
+                        <b>Realtime weather observations for all available weather stations. Some of the readings might have error as they are being updated on realtime. For further queries and suggestions you may reach us out at www.weatherwalay.com.</b>
+                    </font>
+                </marquee>
+            </p>
+        </center>
+    </div>
+
+    <div id="meta" class="light-mode">
+        <center><embed src="https://www.weatherwalay.com/_next/static/media/logomark.47a81a00.svg" width="50%" height="50%"></center>
+        <center><p class="metay light-mode">CURRENT</p></center>
+        <div class="btn-group">
+            <select id="parameterSelect" onchange="switchParameter(this.value)">
+                <option value="temperature">Temperature</option>
+                <option value="humidity">Humidity</option>
+                <option value="dew_point">Dew Point</option>
+                <option value="wet_bulb">Wet Bulb</option>
+                <option value="heat_index">Heat Index</option>
+                <option value="wind_chill">Wind Chill</option>
+                <option value="wind_speed_prevailing">Wind Speed Current</option>
+                <option value="avg_wind_speed_10_min">Wind Speed (10 min)</option>
+                <option value="wind_gust_10_min">Wind Gust (10 min)</option>
+                <option value="rainfall_24_hr">Rain Current</option>
+                <option value="rain_rate_current">Rain Rate Current</option>
+                <option value="rain_rate_mins">Rain Rate (10 min)</option>
+                <option value="solar_radiation">Solar Radiation</option>
+                <option value="uv_index">UV Index</option>
+                <option value="pressure_relative">Pressure Relative</option>
+                <option value="aqi_current">Air Quality Index</option>
+            </select>
+        </div>
+        <center><p class="metay light-mode">LAST 24 HOURS</p></center>
+        <div class="btn-group">
+            <select id="parameterSelect" onchange="switchParameter(this.value)">
+                <option value="max_temperature">Max Temperature</option>
+                <option value="min_temperature">Min Temperature</option>
+                <option value="avg_temperature">Avg Temperature</option>
+                <option value="max_DewPoint">Max Dew Point</option>
+                <option value="min_DewPoint">Min Dew Point</option>
+                <option value="avg_DewPoint">Avg Dew Point</option>
+                <option value="max_WetBulb">Max Wet Bulb</option>
+                <option value="min_WetBulb">Min Wet Bulb</option>
+                <option value="avg_WetBulb">Avg Wet Bulb</option>
+                <option value="max_HeatIndex">Max Heat Index</option>
+                <option value="min_HeatIndex">Min Heat Index</option>
+                <option value="avg_HeatIndex">Avg Heat Index</option>
+                <option value="max_humidity">Max Humidity</option>
+                <option value="min_humidity">Min Humidity</option>
+                <option value="avg_humidity">Avg Humidity</option>
+                <option value="rainfall_daily">Rainfall</option>
+                <option value="rain_rate">Rain Rate</option>
+                <option value="rainfall_monthly">Rain Monthly</option>
+                <option value="rainfall_monsoon">Monsoon (JJAS)</option>
+                <option value="rainfall_yearly">Rain Yearly</option>
+                <option value="avg_wind">Avg Wind Speed</option>
+                <option value="wind_gust">Wind Gust</option>
+                <option value="max_PressureRelative">Max Pressure</option>
+                <option value="min_PressureRelative">Min Pressure</option>
+                <option value="avg_PressureRelative">Avg Pressure</option>
+                <option value="aqi_one">AQI Last 1 Hour</option>
+                <option value="aqi_three">AQI Last 3 Hour</option>
+                <option value="aqi_24">AQI Last 24 Hour</option>
+            </select>
+        </div>
+        <center><p class="metay light-mode">BOUNDARY</p></center>
+        <div class="btn-group">
+            <select id="shapefileSelect" onchange="switchShapefile(this.value)">
+                <option value="nationalboundary">National</option>
+                <option value="provincialboundary">Province</option>
+                <option value="districtboundary">District</option>
+            </select>
+        </div>
+
+        <!-- Information icon and text container -->
+        <div id="infoContainer" class="info-container">
+            <i class="fa fa-info-circle"></i>
+            <p style="margin: 0;">
+                PMD Stations:<br>(08:00 am-08:00 am)<br>AWS Stations:<br>(12:00 am-12:00 am)
+            </p>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="Current.js"></script>
+    <script src="ColorPalettes.js"></script>
+    <script src="Pakistan.js"></script>
+    <script src="windUtils.js"></script>
+    <script src="District.json"></script>
+    <script src="Provincial.json"></script>
+    <script>
+
+    </script>
+    <script>
+        var map = L.map('map').setView([30.3753, 69.3451], 5);
+        var originalZoom = map.getZoom();
+        var originalCenter = map.getCenter();
+
+        // Define the basemaps
+        var lightBaseMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            minZoom: 5,
+            maxZoom: 19,
+        });
+
+        var darkBaseMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            minZoom: 5,
+            maxZoom: 19
+        });
+
+
+
+        setDefaultBaseMap(); // Set the default basemap based on time
+
+        // Add basemap control to switch between light and dark maps
+        var baseMaps = {
+            "Light": lightBaseMap,
+            "Dark": darkBaseMap
+        };
+
+        L.control.layers(baseMaps, null, {
+            position: 'bottomright', // Adjust position as needed
+            style: {
+                backgroundColor: 'white',
+                padding: '10px',
+                borderRadius: '5px',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.4)',
+                textAlign: 'center'
+            }
+        }).addTo(map);
+
+        var currentParameter = 'temperature'; // Default parameter
+        document.getElementById('parameterSelect').value = currentParameter;
+
+
+
+        function resetMap() {
+            map.setView(originalCenter, originalZoom);
+        }
+
+        function calculateFontSize(zoomLevel) {
+            return Math.min(20, 5 + zoomLevel);
+        }
+
+        map.on('zoomend', function () {
+            updateMarkers();
+            reloadCurrentScript();
+        });
+
+        updateMarkers();
+
+        var districtLayer = L.geoJSON(District, {
+            color: '#4d5a78',
+            weight: 2,
+            fillColor: 'rgba(77, 90, 120, 0.4)',
+            fillOpacity: 1.0,
+        });
+
+        var provincialLayer = L.geoJSON(Provincial, {
+            color: '#4d5a78',
+            weight: 2,
+            fillColor: 'rgba(77, 90, 120, 0.4)',
+            fillOpacity: 1.0,
+        });
+
+        if (typeof kmz_pakistan !== 'undefined') {
+            var reversedCoordinates = kmz_pakistan.map(function(coord) {
+                return [coord[1], coord[0]];
+            });
+
+            var nationalLayer = L.polygon(reversedCoordinates, {
+                color: '#4d5a78',
+                weight: 2,
+                fillColor: 'rgba(77, 90, 120, 0.4)',
+                fillOpacity: 1.0,
+            }).addTo(map);
+        } else {
+            console.error("kmz_pakistan is not defined.");
+        }
+
+        // Set the default shapefile to 'nationalboundary'
+        document.getElementById('shapefileSelect').value = 'nationalboundary';
+        switchShapefile('nationalboundary');
+
+        // Switch between light and dark mode based on basemap selection
+        map.on('baselayerchange', function(eventLayer) {
+            var layerName = eventLayer.name;
+            if (layerName === 'Dark') {
+                toggleDarkMode(true);
+            } else {
+                toggleDarkMode(false);
+            }
+        });
+
+    </script>
+</body>
+</html>
